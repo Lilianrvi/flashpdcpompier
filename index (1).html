@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur Hydraulique Modulaire</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- AJOUT : Font Awesome pour les icônes du mode sombre -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* ------------ VARIABLES DE COULEUR POUR LE MODE SOMBRE ------------ */
+        :root {
+            --dark-bg: #1e293b; /* slate-800 */
+            --dark-card-bg: #334155; /* slate-700 */
+            --dark-border: #475569; /* slate-600 */
+            --dark-text-primary: #f1f5f9; /* slate-100 */
+            --dark-text-secondary: #94a3b8; /* slate-400 */
+            --dark-input-bg: #475569; /* slate-600 */
+            --dark-icon-color: #FFDE59;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9; /* slate-100 */
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .card {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            border: 1px solid #e2e8f0;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            border: none;
+        }
+        .btn-primary {
+            background-color: #dc2626;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #b91c1c;
+        }
+        .btn-secondary {
+            background-color: #475569;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #334155;
+        }
+        .establishment-line {
+            border-left: 2px solid #e2e8f0;
+            padding-left: 1rem;
+            margin-left: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        /* --- STYLES DU BOUTON MODE SOMBRE --- */
+        .dark-mode-toggle-container {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+        .dark-mode-btn {
+            background-color: #fff;
+            width: 80px;
+            height: 40px;
+            border-radius: 10em;
+            padding: 0 5px;
+            box-shadow: inset 0 4px 30px rgba(0,0,0, .1),
+                        inset 0 4px 4px rgba(0,0,0, .1),
+                        inset 0 -2px 2px rgba(0,0,0, .1);
+            position: relative;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .dark-mode-btn__indicator {
+            background-color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 0 4px 20px rgba(0,0,0, .2);
+            transition: transform .3s ease;
+        }
+        .dark-mode-btn__icon-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .dark-mode-btn__icon {
+            color: var(--dark-icon-color);
+            font-size: 1.2rem;
+        }
+        .dark-mode-btn__icon.animated {
+            animation: spin 0.5s;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* --- STYLES DU MODE SOMBRE --- */
+        body.dark {
+            background-color: var(--dark-bg);
+            color: var(--dark-text-primary);
+        }
+        body.dark .card {
+            background-color: var(--dark-card-bg);
+            border-color: var(--dark-border);
+        }
+        body.dark .text-slate-800 { color: var(--dark-text-primary); }
+        body.dark .text-slate-700 { color: var(--dark-text-primary); }
+        body.dark .text-slate-600 { color: var(--dark-text-secondary); }
+        body.dark .text-slate-500 { color: var(--dark-text-secondary); }
+        body.dark .bg-slate-50 { background-color: var(--dark-input-bg); }
+        body.dark .border-slate-200 { border-color: var(--dark-border); }
+        body.dark .establishment-line { border-left-color: var(--dark-border); }
+        body.dark input, body.dark select {
+            background-color: var(--dark-input-bg);
+            border-color: var(--dark-border);
+            color: var(--dark-text-primary);
+        }
+        body.dark .dark-mode-btn {
+            box-shadow: inset 0 4px 30px rgba(0,0,0, .3),
+                        inset 4px 0 4px rgba(0,0,0, .3),
+                        inset 0 -2px 2px rgba(0,0,0, .3);
+        }
+        body.dark .dark-mode-btn__indicator {
+            transform: translateX(40px);
+            background-color: var(--dark-card-bg);
+            box-shadow: 0 8px 40px rgba(0,0,0, .3);
+        }
+        body.dark .dark-mode-btn__icon {
+            color: #fff;
+        }
+        body.dark #pressure-circle {
+            stroke: #2dd4bf; /* Teal color for dark mode */
+        }
+        body.dark #pressure-background-fill {
+            fill: var(--dark-card-bg);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <!-- AJOUT : Bouton pour le mode sombre -->
+    <div class="dark-mode-toggle-container">
+        <div class="dark-mode-btn">
+            <div class="dark-mode-btn__indicator">
+                <div class="dark-mode-btn__icon-container">
+                    <i class="fas fa-sun dark-mode-btn__icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-800">Calculateur Hydraulique Opérationnel</h1>
+            <p class="text-slate-500 mt-2">Construisez votre établissement et calculez la pression requise.</p>
+        </header>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <!-- Colonne de gauche : Configuration -->
+            <div id="config-panel" class="lg:col-span-2 space-y-6"></div>
+            <!-- Colonne de droite : Résultats -->
+            <div id="results-container" class="w-full">
+                <div class="card sticky top-8">
+                     <h2 class="text-xl font-bold mb-4 text-center text-slate-700">Pression à la pompe</h2>
+                     <div class="flex justify-center items-center my-6">
+                        <div class="relative w-48 h-48">
+                            <svg class="w-full h-full" viewBox="0 0 120 120">
+                                <!-- MODIFICATION : Ajout d'un cercle de fond pour la couleur -->
+                                <circle id="pressure-background-fill" cx="60" cy="60" r="54" fill="white" style="transition: fill 0.5s ease-out;" />
+                                <!-- Cercle de progression -->
+                                <circle id="pressure-circle" cx="60" cy="60" r="54" fill="none" stroke="#4ade80" stroke-width="12"
+                                        stroke-linecap="round"
+                                        transform="rotate(-90 60 60)"
+                                        style="stroke-dasharray: 339.29; stroke-dashoffset: 339.29; transition: stroke-dashoffset 0.5s ease-out, stroke 0.5s ease-out;" />
+                            </svg>
+                            <div id="pressure-text-container" class="absolute inset-0 flex flex-col justify-center items-center transition-colors duration-500">
+                                <span id="final-pressure" class="text-5xl font-black text-slate-800">0</span>
+                                <span class="block text-xl font-semibold text-slate-500">bars</span>
+                            </div>
+                        </div>
+                     </div>
+                     <div class="space-y-3">
+                        <div class="flex justify-between items-center p-2 rounded-lg bg-slate-50">
+                            <span class="font-semibold">Débit Total Requis :</span>
+                            <span id="total-debit" class="font-bold text-lg">0 L/min</span>
+                        </div>
+                        <div id="pressure-details" class="text-sm space-y-2"></div>
+                        <div id="engin-status" class="text-sm space-y-2"></div>
+                     </div>
+                </div>
+            </div>
+        </div>
+        <!-- Schéma -->
+        <div id="layout-container" class="mt-8 hidden">
+            <div class="card">
+                <h2 class="text-xl font-bold mb-4 text-center text-slate-700">Schéma de l'établissement</h2>
+                <div class="w-full overflow-x-auto p-4 relative">
+                    <svg id="layout-svg" width="100%" height="300"></svg>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- LOGIQUE DU MODE SOMBRE ---
+        const body = document.querySelector('body');
+        const darkModeBtn = document.querySelector('.dark-mode-btn');
+        const darkModeIcon = document.querySelector('.dark-mode-btn__icon');
+
+        function storeDarkMode(value) {
+            localStorage.setItem('darkmode', value);
+        }
+
+        function loadDarkMode() {
+            const darkmode = localStorage.getItem('darkmode');
+            if (!darkmode) {
+                storeDarkMode(false);
+                darkModeIcon.classList.add('fa-sun');
+            } else if (darkmode === 'true') {
+                body.classList.add('dark');
+                darkModeIcon.classList.add('fa-moon');
+            } else {
+                darkModeIcon.classList.add('fa-sun');
+            }
+        }
+
+        darkModeBtn.addEventListener('click', () => {
+            body.classList.toggle('dark');
+            darkModeIcon.classList.add('animated');
+            storeDarkMode(body.classList.contains('dark'));
+
+            if (body.classList.contains('dark')) {
+                darkModeIcon.classList.remove('fa-sun');
+                darkModeIcon.classList.add('fa-moon');
+            } else {
+                darkModeIcon.classList.remove('fa-moon');
+                darkModeIcon.classList.add('fa-sun');
+            }
+
+            setTimeout(() => {
+                darkModeIcon.classList.remove('animated');
+            }, 500);
+        });
+
+        loadDarkMode();
+
+        // --- BASES DE DONNÉES ---
+        const ENGINS = {
+            FPTL: { nom: 'FPTL', debit: 1500, pression: 15 },
+            FPT: { nom: 'FPT', debit: 2000, pression: 15 },
+            FPTGP: { nom: 'FPTGP', debit: 3000, pression: 15 }
+        };
+        const LANCES = {
+            'ldv500': { name: 'LDV 500 L/min', type: 'ldv', pressure: 6, debitMin: 100, debitMax: 500, debitDefaut: 500, inlets: 1, requiredDiameter: 45, abbr: 'LDV' },
+            'canon_pocket': { name: 'Canon Pocket 1000 L/min', type: 'ldv', pressure: 6, debitMin: 500, debitMax: 1000, debitDefaut: 1000, inlets: 1, requiredDiameter: 70, abbr: 'POCKET' },
+            'canon_pok_1': { name: 'Canon Pok 1 entrée 1000', type: 'ldv', pressure: 6, debitMin: 500, debitMax: 1000, debitDefaut: 1000, inlets: 1, requiredDiameter: 70, abbr: 'POK' },
+            'lance_ecran_dn65': { name: 'Lance Ecran DN65 1200', type: 'ldv', pressure: 7, debitMin: 800, debitMax: 1200, debitDefaut: 1200, inlets: 1, requiredDiameter: 70, abbr: 'ECRAN' },
+            'canon_lmp80': { name: 'Canon 2 entrées LMP80', type: 'ldv', pressure: 7, debitMin: 1500, debitMax: 3000, debitDefaut: 3000, inlets: 2, requiredDiameter: 70, abbr: 'LMP80' },
+            'canon_pok_2': { name: 'Canon Pok 2 entrées 3000', type: 'ldv', pressure: 6, debitMin: 1500, debitMax: 3000, debitDefaut: 3000, inlets: 2, requiredDiameter: 70, abbr: 'POK' },
+        };
+        const PERTES_DE_CHARGE_REF = {
+            45: { debitRef: 250, js: 1.5, d: 0.045 },
+            70: { debitRef: 500, js: 0.6, d: 0.070 },
+            110: { debitRef: 1000, js: 0.3, d: 0.110 }
+        };
+        // --- ÉTAT DE L'APPLICATION ---
+        let state = {
+            engin: 'FPT',
+            elevation: 0,
+            departures: [],
+            idCounter: 0,
+        };
+        // --- ÉLÉMENTS DU DOM ---
+        const configPanel = document.getElementById('config-panel');
+        const layoutContainer = document.getElementById('layout-container');
+        // --- INITIALISATION ---
+        function initialize() {
+            render();
+        }
+        // --- SYSTÈME DE GESTION DE L'ÉTAT ---
+        function getElementByPath(path) {
+            if (!path) return null;
+            let current = { departures: state.departures };
+            const parts = path.split('.');
+            for (const part of parts) {
+                if (!current) return null;
+                if (part === 'next') {
+                    current = current.next;
+                    continue;
+                }
+                const match = part.match(/([a-zA-Z]+)(\d+)/);
+                if (match) {
+                    const [, key, indexStr] = match;
+                    const index = parseInt(indexStr);
+                    if (current[key] && current[key][index]) {
+                        current = current[key][index];
+                    } else { return null; }
+                } else { return null; }
+            }
+            return current;
+        }
+        function updateValue(path, field, value) {
+            if (path === null) {
+                const numValue = parseFloat(value);
+                state[field] = isNaN(numValue) ? value : numValue;
+            } else {
+                const element = getElementByPath(path);
+                if (element) {
+                    const numValue = parseFloat(value);
+                    element[field] = isNaN(numValue) ? value : numValue;
+                    if (field === 'lanceType') {
+                        const lanceData = LANCES[value];
+                        element.debit = lanceData.debitDefaut;
+                        const parentPath = path.substring(0, path.lastIndexOf('.'));
+                        const parentElement = getElementByPath(parentPath);
+                        if (parentElement && parentElement.type === 'tuyau') {
+                            parentElement.diametre = lanceData.requiredDiameter;
+                        }
+                    }
+                }
+            }
+            render();
+        }
+        function addComponent(path, type) {
+            const parentNode = getElementByPath(path);
+            const newId = state.idCounter++;
+            if (path === null && type === 'tuyau') {
+                const newPath = `departures${state.departures.length}`;
+                state.departures.push({ id: newId, path: newPath, type: 'tuyau', diametre: 70, longueur: 40, next: null });
+            } else if (parentNode && parentNode.type === 'tuyau' && !parentNode.next) {
+                const newPath = `${path}.next`;
+                if (type === 'lance') {
+                    const defaultLance = Object.keys(LANCES).find(k => LANCES[k].requiredDiameter == parentNode.diametre) || 'ldv500';
+                    const lanceData = LANCES[defaultLance];
+                    parentNode.next = { id: newId, path: newPath, type: 'lance', lanceType: defaultLance, debit: lanceData.debitDefaut };
+                } else if (type === 'division') {
+                    parentNode.next = { id: newId, path: newPath, type: 'division', lines: [] };
+                }
+            } else if (parentNode && parentNode.type === 'division') {
+                const newPath = `${path}.lines${parentNode.lines.length}`;
+                parentNode.lines.push({ id: newId, path: newPath, type: 'tuyau', diametre: 70, longueur: 40, next: null });
+            }
+            render();
+        }
+        function removeComponent(path) {
+            const parts = path.split('.');
+            const lastPart = parts.pop();
+            const parentPath = parts.join('.');
+            if (parentPath === '') {
+                const index = parseInt(lastPart.match(/\d+/)[0]);
+                state.departures.splice(index, 1);
+            } else {
+                const parent = getElementByPath(parentPath);
+                if (!parent) return;
+                if (lastPart === 'next') {
+                    parent.next = null;
+                } else if (parent.type === 'division') {
+                    const index = parseInt(lastPart.match(/\d+/)[0]);
+                    parent.lines.splice(index, 1);
+                }
+            }
+            rePath(state.departures, 'departures');
+            render();
+        }
+        function rePath(nodes, basePath) {
+            if (!nodes) return;
+            nodes.forEach((node, i) => {
+                const currentBasePath = `${basePath}${i}`;
+                node.path = currentBasePath;
+                if (node.next) {
+                    node.next.path = `${currentBasePath}.next`;
+                    if (node.next.lines) rePath(node.next.lines, `${node.next.path}.lines`);
+                }
+                if (node.lines) rePath(node.lines, `${currentBasePath}.lines`);
+            });
+        }
+        // --- MOTEUR DE RENDU ---
+        function render() {
+            configPanel.innerHTML = createEnginCard();
+            const establishmentCard = document.createElement('div');
+            establishmentCard.className = 'card';
+            establishmentCard.innerHTML = `
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-slate-700">2. Établissement</h2>
+                    <button class="btn btn-primary text-sm py-2 px-4" onclick="window.app.addComponent(null, 'tuyau')">Ajouter un départ</button>
+                </div>
+                <div id="departures-container" class="space-y-4"></div>
+                <div class="mt-6 text-center">
+                    <button class="btn btn-primary text-lg" onclick="window.app.calculateAndDisplay()">Calculer & Mettre à jour le schéma</button>
+                </div>
+            `;
+            configPanel.appendChild(establishmentCard);
+            const departuresContainer = document.getElementById('departures-container');
+            if (state.departures.length === 0) {
+                departuresContainer.innerHTML = `<p class="text-slate-500 text-center italic">Aucun départ depuis l'engin.</p>`;
+            } else {
+                state.departures.forEach(dep => {
+                    departuresContainer.appendChild(createNodeElement(dep));
+                });
+            }
+        }
+        function createEnginCard() {
+            return `
+                <div class="card">
+                    <h2 class="text-xl font-bold mb-4 text-slate-700">1. Configuration Globale</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="engin-select" class="block text-sm font-medium text-slate-600 mb-1">Type d'engin</label>
+                            <select id="engin-select" class="w-full p-3 rounded-lg bg-slate-50 border border-slate-200" onchange="window.app.updateValue(null, 'engin', this.value)">
+                                <option value="FPTL" ${state.engin === 'FPTL' ? 'selected' : ''}>FPTL (1500 L/min, 15 bars)</option>
+                                <option value="FPT" ${state.engin === 'FPT' ? 'selected' : ''}>FPT (2000 L/min, 15 bars)</option>
+                                <option value="FPTGP" ${state.engin === 'FPTGP' ? 'selected' : ''}>FPTGP (3000 L/min, 15 bars)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="elevation" class="block text-sm font-medium text-slate-600 mb-1">Dénivelé total (m)</label>
+                            <input type="number" id="elevation" value="${state.elevation}" step="1" placeholder="Positif si la lance est plus haute" class="w-full p-3 rounded-lg bg-slate-50 border border-slate-200" onchange="window.app.updateValue(null, 'elevation', this.value)">
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        function createNodeElement(node) {
+            const el = document.createElement('div');
+            el.className = 'p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-3';
+            if (node.type === 'tuyau') {
+                el.innerHTML = createTuyauUI(node);
+                if (node.next) {
+                    el.appendChild(createNodeElement(node.next));
+                } else {
+                    const addNextDiv = document.createElement('div');
+                    addNextDiv.innerHTML = createAddNextUI(node.path, node.diametre);
+                    el.appendChild(addNextDiv);
+                }
+            } else if (node.type === 'division') {
+                el.innerHTML = createDivisionUI(node);
+            } else if (node.type === 'lance') {
+                el.innerHTML = createLanceUI(node);
+            }
+            return el;
+        }
+        function createTuyauUI(tuyau) {
+            const isLanceConnected = tuyau.next && tuyau.next.type === 'lance';
+            const lanceData = isLanceConnected ? LANCES[tuyau.next.lanceType] : null;
+            const isDiameterLocked = isLanceConnected && lanceData.inlets > 0;
+            let diameterOptions = `<option value="45" ${tuyau.diametre == 45 ? 'selected' : ''}>Ø 45 mm</option>
+                                   <option value="70" ${tuyau.diametre == 70 ? 'selected' : ''}>Ø 70 mm</option>
+                                   <option value="110" ${tuyau.diametre == 110 ? 'selected' : ''}>Ø 110 mm</option>`;
+            if(isDiameterLocked) {
+                diameterOptions = `<option value="${lanceData.requiredDiameter}" selected>Ø ${lanceData.requiredDiameter} mm (verrouillé)</option>`;
+            }
+            return `
+                <div class="flex justify-between items-center">
+                    <h4 class="font-bold text-slate-700">Tuyau</h4>
+                    <button class="text-red-500 hover:text-red-700 font-bold text-2xl" onclick="window.app.removeComponent('${tuyau.path}')">&times;</button>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Diamètre</label>
+                        <select class="w-full p-2 rounded-md bg-white border-slate-300" onchange="window.app.updateValue('${tuyau.path}', 'diametre', this.value)" ${isDiameterLocked ? 'disabled' : ''}>
+                           ${diameterOptions}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Longueur (m)</label>
+                        <input type="number" value="${tuyau.longueur}" min="0" step="20" class="w-full p-2 rounded-md bg-white border-slate-300" onchange="window.app.updateValue('${tuyau.path}', 'longueur', this.value)" />
+                    </div>
+                </div>
+            `;
+        }
+        function createLanceUI(lance) {
+            const lanceData = LANCES[lance.lanceType];
+            let options = '';
+            Object.keys(LANCES).forEach(key => {
+                options += `<option value="${key}" ${lance.lanceType === key ? 'selected' : ''}>${LANCES[key].name}</option>`;
+            });
+            let debitUI = '';
+            if (lanceData.type === 'ldv') {
+                debitUI = `
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Débit (L/min)</label>
+                        <input type="number" value="${lance.debit}" min="${lanceData.debitMin}" max="${lanceData.debitMax}" class="w-full p-2 rounded-md bg-white border-slate-300" onchange="window.app.updateValue('${lance.path}', 'debit', this.value)" />
+                    </div>
+                `;
+            }
+            return `
+                <div class="flex justify-between items-center">
+                    <h4 class="font-bold text-slate-700">Lance</h4>
+                    <button class="text-red-500 hover:text-red-700 font-bold text-2xl" onclick="window.app.removeComponent('${lance.path}')">&times;</button>
+                </div>
+                <div class="grid grid-cols-1 ${debitUI ? 'md:grid-cols-2' : ''} gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Type de lance</label>
+                        <select class="w-full p-2 rounded-md bg-white border-slate-300" onchange="window.app.updateValue('${lance.path}', 'lanceType', this.value)">
+                            ${options}
+                        </select>
+                    </div>
+                    ${debitUI}
+                </div>
+            `;
+        }
+        function createDivisionUI(division) {
+            let linesUI = '';
+            division.lines.forEach(line => {
+                linesUI += `<div class="establishment-line mt-3">${createNodeElement(line).outerHTML}</div>`;
+            });
+            return `
+                <div class="flex justify-between items-center">
+                    <h4 class="font-bold text-slate-700">Division</h4>
+                    <button class="text-red-500 hover:text-red-700 font-bold text-2xl" onclick="window.app.removeComponent('${division.path}')">&times;</button>
+                </div>
+                <div class="space-y-3 pl-4 border-l-2 border-slate-300">
+                    ${linesUI}
+                    <div class="pt-2">
+                        <button class="btn btn-secondary text-xs" onclick="window.app.addComponent('${division.path}', 'tuyau')">Ajouter une ligne</button>
+                    </div>
+                </div>
+            `;
+        }
+        function createAddNextUI(path, hoseDiameter) {
+            const compatibleLances = Object.keys(LANCES).filter(key => LANCES[key].requiredDiameter == hoseDiameter);
+            if (compatibleLances.length === 0) {
+                return `<p class="text-center text-sm text-amber-600 bg-amber-100 p-2 rounded-md mt-4">Aucune lance compatible avec un tuyau de Ø${hoseDiameter}. Changez le diamètre du tuyau.</p>`;
+            }
+            return `
+                <div class="mt-4 pt-4 border-t border-dashed flex items-center justify-center gap-4">
+                    <button class="btn btn-secondary text-sm" onclick="window.app.addComponent('${path}', 'division')">Ajouter une Division</button>
+                    <button class="btn btn-secondary text-sm" onclick="window.app.addComponent('${path}', 'lance')">Ajouter une Lance</button>
+                </div>
+            `;
+        }
+
+        // --- FONCTION POUR LE MANOMÈTRE ---
+        function updatePressureGauge(pressure, maxPressure) {
+            const circle = document.getElementById('pressure-circle');
+            const backgroundFill = document.getElementById('pressure-background-fill');
+            const textContainer = document.getElementById('pressure-text-container');
+            const pressureText = document.getElementById('final-pressure');
+
+            const radius = circle.r.baseVal.value;
+            const circumference = 2 * Math.PI * radius;
+            const percentage = Math.min(pressure / maxPressure, 1);
+            const offset = circumference - percentage * circumference;
+
+            circle.style.strokeDasharray = `${circumference}`;
+            circle.style.strokeDashoffset = offset;
+
+            pressureText.textContent = pressure.toFixed(1);
+
+            // Réinitialiser les couleurs
+            const defaultFill = body.classList.contains('dark') ? 'var(--dark-card-bg)' : 'white';
+            backgroundFill.style.fill = defaultFill;
+            textContainer.classList.remove('!text-red-500');
+            
+            const defaultStroke = body.classList.contains('dark') ? '#2dd4bf' : '#4ade80';
+
+            if (pressure > maxPressure) {
+                circle.style.stroke = '#ef4444'; 
+                backgroundFill.style.fill = 'rgba(239, 68, 68, 0.2)'; // Fond rouge clair
+                textContainer.classList.add('!text-red-500');
+            } else if (pressure >= maxPressure * 0.85) {
+                circle.style.stroke = '#f97316';
+            } else if (pressure >= maxPressure * 0.66) {
+                circle.style.stroke = '#facc15';
+            } else {
+                circle.style.stroke = defaultStroke;
+            }
+        }
+
+        // --- MOTEUR DE CALCUL FIABILISÉ ---
+        function calculateAndDisplay() {
+            const enginData = ENGINS[state.engin];
+            let totalDebit = 0;
+            let maxPressure = 0;
+            let pressureDetails = [];
+            // ÉTAPE 1: Calculer les débits
+            function calculateDebits(node) {
+                if (!node) return 0;
+                if (node.type === 'lance') {
+                    node.calculatedDebit = node.debit;
+                    return node.debit;
+                }
+                if (node.type === 'division') {
+                    let divisionDebit = 0;
+                    node.lines.forEach(line => {
+                        divisionDebit += calculateDebits(line);
+                    });
+                    node.calculatedDebit = divisionDebit;
+                    return divisionDebit;
+                }
+                if (node.type === 'tuyau') {
+                    const debitAfter = calculateDebits(node.next);
+                    node.calculatedDebit = debitAfter;
+                    return debitAfter;
+                }
+                return 0;
+            }
+            // ÉTAPE 2: Calculer la pression
+            function calculatePressure(node, elevation = state.elevation, branchIndex = null) {
+                if (!node) return { pressure: 0, details: [] };
+                let branchDetails = [];
+                if (node.type === 'lance') {
+                    const lancePressure = LANCES[node.lanceType].pressure;
+                    const elevationPressure = elevation / 10;
+                    branchDetails.push(`Lance (${LANCES[node.lanceType].name}): ${lancePressure.toFixed(1)} bar`);
+                    if (elevation !== 0) {
+                        branchDetails.push(`Dénivelé: ${elevationPressure.toFixed(1)} bar (${elevation} m)`);
+                    }
+                    return { pressure: lancePressure + elevationPressure, details: branchDetails };
+                }
+                if (node.type === 'division') {
+                    let maxSubPressure = 0;
+                    node.lines.forEach((line, index) => {
+                        const subResult = calculatePressure(line, elevation, branchIndex !== null ? `${branchIndex}.${index + 1}` : `${index + 1}`);
+                        if (subResult.pressure > maxSubPressure) {
+                            maxSubPressure = subResult.pressure;
+                            branchDetails = subResult.details;
+                        }
+                    });
+                    return { pressure: maxSubPressure, details: branchDetails };
+                }
+                if (node.type === 'tuyau') {
+                    const resultAfter = calculatePressure(node.next, elevation, branchIndex);
+                    const ref = PERTES_DE_CHARGE_REF[node.diametre];
+                    const ratioQ = (resultAfter.pressure > 0 && node.calculatedDebit > 0) ? node.calculatedDebit / ref.debitRef : 1;
+                    const jAdjusted = ref.js * Math.pow(ratioQ, 2);
+                    const pdc = jAdjusted * (node.longueur / 100);
+                    branchDetails = resultAfter.details;
+                    branchDetails.push(`Tuyau Ø${node.diametre}mm (${node.longueur}m): ${pdc.toFixed(1)} bar`);
+                    return { pressure: resultAfter.pressure + pdc, details: branchDetails };
+                }
+                return { pressure: 0, details: [] };
+            }
+            state.departures.forEach((departure, index) => {
+                totalDebit += calculateDebits(departure);
+                const branchResult = calculatePressure(departure, state.elevation, index + 1);
+                pressureDetails.push(`<div class="p-2 rounded-lg bg-slate-50"><strong>Ligne ${index + 1} :</strong><ul class="list-disc pl-5">${branchResult.details.map(detail => `<li>${detail}</li>`).join('')}</ul><strong>Total: ${branchResult.pressure.toFixed(1)} bar</strong></div>`);
+                if (branchResult.pressure > maxPressure) {
+                    maxPressure = branchResult.pressure;
+                }
+            });
+            const pressionFinale = Math.round(maxPressure * 10) / 10;
+            
+            updatePressureGauge(pressionFinale, enginData.pression);
+            
+            document.getElementById('total-debit').textContent = `${totalDebit} L/min`;
+            document.getElementById('pressure-details').innerHTML = pressureDetails.join('');
+            const enginStatusDiv = document.getElementById('engin-status');
+            let statusHtml = '';
+            if (totalDebit > enginData.debit) {
+                statusHtml += `<div class="p-2 rounded-lg bg-red-100 text-red-700"><strong>DANGER :</strong> Débit total requis (${totalDebit} L/min) dépasse la capacité de l'engin (${enginData.debit} L/min).</div>`;
+            } else {
+                 statusHtml += `<div class="p-2 rounded-lg bg-green-100 text-green-700"><strong>Débit OK :</strong> ${totalDebit} L/min / ${enginData.debit} L/min.</div>`;
+            }
+            if (pressionFinale > enginData.pression) {
+                statusHtml += `<div class="p-2 rounded-lg bg-red-100 text-red-700 mt-2"><strong>DANGER :</strong> Pression requise (${pressionFinale.toFixed(1)} bar) dépasse la capacité de l'engin (${enginData.pression} bar).</div>`;
+            } else if (pressionFinale >= 13) {
+                statusHtml += `<div class="p-2 rounded-lg bg-orange-100 text-orange-700 mt-2"><strong>ATTENTION :</strong> Pression très élevée. Risque d'éclatement.</div>`;
+            } else if (pressionFinale >= 10) {
+                statusHtml += `<div class="p-2 rounded-lg bg-yellow-100 text-yellow-700 mt-2"><strong>ATTENTION :</strong> Pression élevée. Vérifier les raccords.</div>`;
+            } else {
+                statusHtml += `<div class="p-2 rounded-lg bg-green-100 text-green-700 mt-2"><strong>Pression OK :</strong> ${pressionFinale.toFixed(1)} bar / ${enginData.pression} bar.</div>`;
+            }
+            enginStatusDiv.innerHTML = statusHtml;
+            layoutContainer.classList.remove('hidden');
+            drawLayout();
+        }
+        
+        // --- MOTEUR DE DESSIN DU SCHÉMA ---
+        function drawLayout() {
+            const svg = document.getElementById('layout-svg');
+            svg.innerHTML = '';
+            const NODE_SIZE = { width: 90, height: 40 };
+            const HOSE_HEIGHT = { 110: 14, 70: 10, 45: 6 };
+            const HOSE_COLORS = { 110: '#3b82f6', 70: '#475569', 45: '#94a3b8' };
+            const PADDING = 10;
+            const LEVEL_HEIGHT = 80;
+            const HORIZONTAL_SPACING = 30;
+            const layoutMap = new Map();
+            function getBranchHeight(node) {
+                if (!node) return LEVEL_HEIGHT;
+                if (node.type === 'division') {
+                    let totalSubHeight = 0;
+                    if (node.lines.length > 0) {
+                        node.lines.forEach(line => totalSubHeight += getBranchHeight(line));
+                        return totalSubHeight;
+                    }
+                    return LEVEL_HEIGHT;
+                }
+                return getBranchHeight(node.next);
+            }
+            function calculateLayout(node, x, y) {
+                if (!node) return;
+                const segmentLength = 120;
+                let currentX = x;
+                layoutMap.set(node.id, { x: currentX, y: y });
+                if (node.type === 'tuyau') {
+                    currentX += segmentLength + HORIZONTAL_SPACING;
+                    calculateLayout(node.next, currentX, y);
+                } else if (node.type === 'division') {
+                    currentX += NODE_SIZE.width;
+                    const subBranchHeights = node.lines.map(line => getBranchHeight(line));
+                    const totalSubHeight = subBranchHeights.reduce((a, b) => a + b, 0);
+                    let startY = y - (totalSubHeight / 2) + (node.lines.length > 0 ? subBranchHeights[0] / 2 : 0);
+                    node.lines.forEach((line, index) => {
+                        const subHeight = subBranchHeights[index];
+                        calculateLayout(line, currentX + HORIZONTAL_SPACING, startY);
+                        startY += subHeight;
+                    });
+                }
+            }
+            function drawNode(x, y, width, height, color, text) {
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', x); rect.setAttribute('y', y - height / 2);
+                rect.setAttribute('width', width); rect.setAttribute('height', height);
+                rect.setAttribute('fill', color); rect.setAttribute('ry', 8);
+                g.appendChild(rect);
+                const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                textEl.setAttribute('x', x + width / 2); textEl.setAttribute('y', y);
+                textEl.setAttribute('text-anchor', 'middle'); textEl.setAttribute('dominant-baseline', 'middle');
+                textEl.setAttribute('font-weight', 'bold'); textEl.setAttribute('font-size', '11px');
+                textEl.setAttribute('fill', 'white');
+                textEl.textContent = text;
+                g.appendChild(textEl);
+                svg.appendChild(g);
+            }
+            function drawHose(x1, y1, x2, y2, height, color, label, numInlets = 1) {
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                const spacing = 12;
+                const startY = y1 - (numInlets - 1) * spacing / 2;
+                for(let i = 0; i < numInlets; i++) {
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', x1); line.setAttribute('y1', startY + i*spacing);
+                    line.setAttribute('x2', x2); line.setAttribute('y2', startY + i*spacing);
+                    line.setAttribute('stroke', color); line.setAttribute('stroke-width', height);
+                    line.setAttribute('stroke-linecap', 'round');
+                    g.appendChild(line);
+                }
+                const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                textEl.setAttribute('x', (x1 + x2) / 2); textEl.setAttribute('y', y1 + 25);
+                textEl.setAttribute('text-anchor', 'middle');
+                textEl.setAttribute('class', 'fill-current text-slate-500 text-sm font-semibold');
+                textEl.textContent = label;
+                g.appendChild(textEl);
+                svg.appendChild(g);
+            }
+            function drawElevationArrow(x, y, elevation) {
+                if (elevation === 0) return;
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                const isPositive = elevation > 0;
+                const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                textEl.setAttribute('x', x);
+                textEl.setAttribute('y', y);
+                textEl.setAttribute('text-anchor', 'start');
+                textEl.setAttribute('class', 'fill-current text-slate-500 text-sm font-semibold');
+                textEl.textContent = `${isPositive ? '↑' : '↓'} ${Math.abs(elevation)} m`;
+                g.appendChild(textEl);
+                svg.appendChild(g);
+            }
+            const totalEstablishmentHeight = state.departures.reduce((acc, dep) => acc + getBranchHeight(dep), 0);
+            const svgHeight = Math.max(300, totalEstablishmentHeight + PADDING * 2);
+            svg.setAttribute('height', svgHeight);
+            const yOffset = (svgHeight / 2) - (totalEstablishmentHeight / 2);
+            layoutMap.set('engin', { x: PADDING, y: svgHeight / 2 });
+            let startY = yOffset;
+            state.departures.forEach(dep => {
+                const branchHeight = getBranchHeight(dep);
+                calculateLayout(dep, PADDING + NODE_SIZE.width + HORIZONTAL_SPACING, startY + branchHeight / 2);
+                startY += branchHeight;
+            });
+            // Draw everything
+            drawNode(layoutMap.get('engin').x, layoutMap.get('engin').y, NODE_SIZE.width, NODE_SIZE.height, '#dc2626', state.engin);
+            if (state.elevation !== 0) {
+                const svgWidth = parseInt(svg.getAttribute('width')) || 1000;
+                let maxX = PADDING + NODE_SIZE.width;
+                layoutMap.forEach((pos, id) => {
+                    if (pos.x > maxX) maxX = pos.x;
+                });
+                const arrowX = maxX + HORIZONTAL_SPACING;
+                const arrowY = PADDING + 20;
+                drawElevationArrow(arrowX, arrowY, state.elevation);
+            }
+            function drawRecursive(node) {
+                if (!node) return;
+                const pos = layoutMap.get(node.id);
+                if (!pos) return;
+                if (node.type === 'tuyau') {
+                    const nextPos = node.next ? layoutMap.get(node.next.id) : {x: pos.x + 120, y: pos.y};
+                    const lanceData = (node.next && node.next.type === 'lance') ? LANCES[node.next.lanceType] : { inlets: 1 };
+                    drawHose(pos.x - HORIZONTAL_SPACING, pos.y, nextPos.x, nextPos.y, HOSE_HEIGHT[node.diametre], HOSE_COLORS[node.diametre], `${node.longueur}m Ø${node.diametre}`, lanceData.inlets);
+                    drawRecursive(node.next);
+                } else if (node.type === 'lance') {
+                    drawNode(pos.x, pos.y, NODE_SIZE.width, NODE_SIZE.height, '#2563eb', LANCES[node.lanceType].abbr);
+                } else if (node.type === 'division') {
+                    drawNode(pos.x, pos.y, NODE_SIZE.width, NODE_SIZE.height, '#3b82f6', 'DIV');
+                    node.lines.forEach(line => {
+                        const linePos = layoutMap.get(line.id);
+                        if (linePos) {
+                            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                            path.setAttribute('d', `M ${pos.x + NODE_SIZE.width} ${pos.y} L ${pos.x + NODE_SIZE.width + HORIZONTAL_SPACING/2} ${pos.y} L ${pos.x + NODE_SIZE.width + HORIZONTAL_SPACING/2} ${linePos.y} L ${linePos.x - HORIZONTAL_SPACING} ${linePos.y}`);
+                            path.setAttribute('stroke', '#94a3b8');
+                            path.setAttribute('stroke-width', '2');
+                            path.setAttribute('fill', 'none');
+                            svg.appendChild(path);
+                            drawRecursive(line);
+                        }
+                    });
+                }
+            }
+            startY = yOffset;
+            state.departures.forEach(dep => {
+                const branchHeight = getBranchHeight(dep);
+                const depPos = layoutMap.get(dep.id);
+                if (depPos) {
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', `M ${PADDING + NODE_SIZE.width} ${layoutMap.get('engin').y} L ${PADDING + NODE_SIZE.width + HORIZONTAL_SPACING/2} ${layoutMap.get('engin').y} L ${PADDING + NODE_SIZE.width + HORIZONTAL_SPACING/2} ${depPos.y} L ${depPos.x - HORIZONTAL_SPACING} ${depPos.y}`);
+                    path.setAttribute('stroke', '#94a3b8');
+                    path.setAttribute('stroke-width', '2');
+                    path.setAttribute('fill', 'none');
+                    svg.appendChild(path);
+                    drawRecursive(dep);
+                }
+                startY += branchHeight;
+            });
+        }
+        // --- EXPOSER LES FONCTIONS GLOBALES ---
+        window.app = {
+            updateValue,
+            addComponent,
+            removeComponent,
+            calculateAndDisplay
+        };
+        // Démarrage de l'application
+        initialize();
+    });
+    </script>
+</body>
+</html>
